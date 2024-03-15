@@ -1,34 +1,80 @@
 import React, { useState } from "react";
 import { Facebook, GitHub, Google } from "@mui/icons-material";
-
+import { getDatabase, ref, child, onValue, get } from "firebase/database";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import {app} from '../firebase';
+import { app } from "../firebase/firebase";
 
-const auth = getAuth(app)
-const LoginForm = ({ isLogin,setLogin }) => {
+const auth = getAuth(app);
+
+const LoginForm = ({ isLogin, setLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleSignUpClick = () => {
-    // navigate("/signup");
-    setLogin(true)
+    setLogin(true);
   };
 
-  const loginUser = () => {
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log("User is Logged In :" + user);
-        // navigate("/home");
+  const getUser = async (id) => {
+    // try {
+
+    const dbRef = ref(getDatabase());
+    get(child(dbRef, `users/${id}`))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          console.log(snapshot.val());
+          if (snapshot.val().role === "Candidate") {
+            navigate(`/${id}/candidates`);
+          } else {
+            navigate(`/${id}/interviewer`);
+          }
+        } else {
+          console.log("No data available");
+        }
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // Handle error appropriately
+        console.error(error);
       });
+
+    //   const db = getDatabase();
+    //   const usersRef = ref(db, 'users/'+id);
+    //   const snapshot = await get(child(usersRef, auth.currentUser.uid));
+    //   if (snapshot.exists()) {
+    //     console.log(snapshot.val());
+    //     return snapshot.val();
+    //   } else {
+    //     console.log("No data available");
+    //     return null;
+    //   }
+    // } catch (error) {
+    //   console.error("Error fetching user data:", error);
+    //   return null;
+    // }
   };
+
+  const loginUser = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      console.log("User is Logged In: ", user.uid);
+
+      await getUser(user.uid);
+
+   
+     
+        
+      
+    } catch (error) {
+      console.error("Login Error:", error.message);
+      alert("Login failed. Please check your credentials.");
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-2xl flex flex-col w-full md:w-1/3 items-center max-w-4xl transition duration-1000 ease-out">
       <h2 className="p-3 text-3xl font-bold text-pink-400">Horiz</h2>
@@ -82,4 +128,4 @@ const LoginForm = ({ isLogin,setLogin }) => {
   );
 };
 
-export default LoginForm
+export default LoginForm;

@@ -2,40 +2,53 @@ import React, { useState } from "react";
 import { Facebook, GitHub, Google } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import {app} from '../firebase';
+import { getDatabase, ref, set } from "firebase/database";
+import { app } from "../firebase/firebase";
+
 const auth = getAuth(app);
 
-const SignUpForm = ({isLogin,setLogin}) => {
+const SignUpForm = ({ isLogin, setLogin }) => {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState(""); // State to manage the selected role
+  const [isOpen, setIsOpen] = useState(false);
 
-    const navigate = useNavigate();
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-   
-    const handleLoginClick = () => {
-        setLogin(false);
-      };
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
 
-  const SignUp =()=> {
-    // e.preventDefault();
-    // ;(async ()=>{
-    //     const response = await axios.post("http://localhost:5000/signup",{registerEmail,registerPassword,registerName});
-    //     console.log(response)
-    // });
+  const handleLoginClick = () => {
+    setLogin(false);
+    navigate("/");
+  };
 
+  const SignUp = () => {
     createUserWithEmailAndPassword(auth, email, password)
-      .then((user) => {
+      .then(async (user) => {
         console.log(user);
-       alert("Account is Created ")
-        // navigate("/home");
+        alert("Account is Created ");
+
+        writeUserData(user.user?.uid, name, email, password, role);
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode + " " + errorMessage);
-       
       });
-  }
+
+    function writeUserData(userId, name, email, password, role) {
+      const db = getDatabase();
+      set(ref(db,"users/" + userId), {
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+      });
+    }
+  };
+
   return (
     <div className="bg-blue-400 text-white rounded-2xl shadow-2xl  flex flex-col w-full  md:w-1/3 items-center max-w-4xl transition duration-1000 ease-in">
       <h2 className="p-3 text-3xl font-bold text-white">Horiz</h2>
@@ -78,6 +91,39 @@ const SignUpForm = ({isLogin,setLogin}) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         ></input>
+
+        {/* Dropdown for selecting role */}
+        <div className="relative">
+          <button
+            onClick={toggleDropdown}
+            className="rounded-2xl text-black px-2 py-1 w-4/5 md:w-full border-[1px] border-blue-400 m-1 focus:shadow-md focus:border-pink-400 focus:outline-none focus:ring-0"
+          >
+            {role ? role : "Select Role"}
+          </button>
+          {isOpen && (
+            <div className="absolute mt-1 w-4/5 md:w-full bg-white border border-gray-300 rounded-md shadow-lg">
+              <button
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  setRole("Candidate");
+                  toggleDropdown();
+                }}
+              >
+                Candidate
+              </button>
+              <button
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  setRole("Interviewer");
+                  toggleDropdown();
+                }}
+              >
+                Interviewer
+              </button>
+            </div>
+          )}
+        </div>
+
         <button
           className="rounded-2xl m-4 text-blue-400 bg-white w-3/5 px-4 py-2 shadow-md hover:text-white hover:bg-blue-400 transition duration-200 ease-in"
           onClick={SignUp}
