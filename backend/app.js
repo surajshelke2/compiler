@@ -11,7 +11,7 @@ app.get('/languages', async (req, res) => {
   try {
     const response = await axios.get('https://online-code-compiler.p.rapidapi.com/v1/languages/', {
       headers: {
-        'X-RapidAPI-Key': '95a67c64aemsh8590f0db2679eb6p12fa0cjsn3f0edad2fc7c',
+        'X-RapidAPI-Key': 'ae0d886f0emshcd3ecab2f48382fp129f60jsn6d4ee8c1a6f4',
         'X-RapidAPI-Host': 'online-code-compiler.p.rapidapi.com'
       }
     });
@@ -27,14 +27,19 @@ app.get('/languages', async (req, res) => {
 
 app.post('/execute', async (req, res) => {
   try {
-    const { language, code, input } = req.body;
+    let { language, code, input } = req.body;
+    language =  language.replace(/\s/g, '')
+    language = language.toLowerCase();
 
+    if (!language || !code) throw new Error("Language and Code are required fields");
+    console.log(language)
+console.log(code)
     const options = {
       method: 'POST',
       url: 'https://online-code-compiler.p.rapidapi.com/v1/',
       headers: {
         'content-type': 'application/json',
-        'X-RapidAPI-Key': '95a67c64aemsh8590f0db2679eb6p12fa0cjsn3f0edad2fc7c',
+        'X-RapidAPI-Key': 'ae0d886f0emshcd3ecab2f48382fp129f60jsn6d4ee8c1a6f4',
         'X-RapidAPI-Host': 'online-code-compiler.p.rapidapi.com'
       },
       data: {
