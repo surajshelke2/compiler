@@ -64,6 +64,7 @@ const LoginForm = ({ isLogin, setLogin }) => {
       console.log("User is Logged In: ", user.uid);
 
       await getUser(user.uid);
+      alert("Login Suceessfull")
 
    
      

@@ -36,6 +36,7 @@ const SignUpForm = ({ isLogin, setLogin }) => {
         const errorCode = error.code;
         const errorMessage = error.message;
         console.log(errorCode + " " + errorMessage);
+        alert(error)
       });
 
     function writeUserData(userId, name, email, password, role) {
